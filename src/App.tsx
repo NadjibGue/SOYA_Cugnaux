@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Phone, MapPin, Clock, Star, Plus, Minus, MessageCircle, Utensils, Coffee, Cake, Gift, Share2, Trophy, Zap, Heart, Users, Menu, X, ChefHat, Sparkles, Crown, Search, Filter, Loader2, CheckCircle, AlertCircle, Volume2, VolumeX, Flame } from 'lucide-react';
+import { ShoppingCart, MapPin, Clock, Star, Plus, Minus, MessageCircle, Utensils, Coffee, Cake, Gift, Share2, Trophy, Zap, Heart, Users, Menu, X, ChefHat, Sparkles, Crown, Search, Filter, Loader2, CheckCircle, AlertCircle, Volume2, VolumeX, Flame } from 'lucide-react';
 
 interface CartItem {
   id: string;
@@ -25,6 +25,27 @@ interface GameState {
   highScore: number;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  popular?: boolean;
+  bestseller?: boolean;
+  premium?: boolean;
+  image?: string;
+  detailedDescription?: string;
+  ingredients?: string[];
+  allergens?: string[];
+  nutritions?: {
+    calories: number;
+    proteines: string;
+    lipides: string;
+    glucides: string;
+  };
+}
+
 function App() {
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -36,7 +57,6 @@ function App() {
   const [isGameOpen, setIsGameOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('burgers');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [animatedProducts, setAnimatedProducts] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -53,10 +73,10 @@ function App() {
     timeLeft: 30,
     currentBurger: 0,
     gameOver: false,
-    highScore: parseInt(localStorage.getItem('soyaHighScore') || '2025') // Score initial 2025
+    highScore: parseInt(localStorage.getItem('soyaHighScore') || '2025')
   });
 
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -65,7 +85,7 @@ function App() {
   const sauces = ['Ketchup', 'Mayo', 'Algérienne', 'Blanche', 'Barbecue', 'Curry'];
   const filters = ['Populaire', 'Premium', 'Végétarien', 'Épicé', 'Nouveau'];
 
-  const products = {
+  const products: Record<string, Product[]> = {
     burgers: [
       {
         id: 'burger-1',
@@ -280,9 +300,9 @@ function App() {
 
   // Game Logic
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     if (gameState.isPlaying && gameState.timeLeft > 0) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         setGameState(prev => ({
           ...prev,
           timeLeft: prev.timeLeft - 1
@@ -327,22 +347,7 @@ function App() {
     }));
   };
 
-  const shareGame = () => {
-    const shareText = `🍔 J'ai fait ${gameState.score} points au jeu Soya ! Viens tester tes réflexes et découvrir les meilleurs burgers de la ville ! #SoyaBurger #QueDesSmash`;
-    
-    if (navigator.share) {
-      navigator.share({
-        title: 'Jeu Soya - Que des Smash !',
-        text: shareText,
-        url: window.location.href
-      });
-    } else {
-      navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
-      alert('Lien copié ! Partage-le avec tes amis 🍔');
-    }
-  };
-
-  const addToCart = (product: any) => {
+  const addToCart = (product: Product) => {
     const existingItem = formData.cart.find(item => item.id === product.id);
     
     if (existingItem) {
@@ -444,29 +449,13 @@ function App() {
     return encodeURIComponent(message);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.firstName.trim()) {
-      alert('Veuillez saisir votre prénom');
-      return;
-    }
-    if (formData.cart.length === 0) {
-      alert('Veuillez ajouter au moins un produit à votre commande');
-      return;
-    }
-    
-    const message = generateOrderMessage();
-    // Remplacer par le vrai numéro WhatsApp
-    const whatsappUrl = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER || '33123456789'}?text=${message}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
   const burgerEmojis = ['🍔', '🍕', '🌭', '🥪', '🧀', '🥓'];
 
   // Animation effect for products
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAnimatedProducts(products[activeTab as keyof typeof products].map(p => p.id));
+      // Animation des produits quand on change d'onglet
+      playSound('click');
     }, 100);
     return () => clearTimeout(timer);
   }, [activeTab]);
@@ -1196,18 +1185,6 @@ Je viendrai bientôt commander pour profiter de ma petite réduction 😊
                   )}
                 </div>
 
-                {/* Favorite Button */}
-                <button
-                  onClick={() => toggleFavorite(product.id)}
-                  className={`absolute z-10 p-2 rounded-full transition-all duration-300 ${
-                    favorites.includes(product.id)
-                      ? 'bg-red-500 text-white'
-                      : 'bg-white/80 text-gray-400 hover:text-red-500'
-                  } ${viewMode === 'list' ? 'top-4 left-4' : 'top-4 right-4'}`}
-                >
-                  <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
-                </button>
-
                 <div className={viewMode === 'list' ? 'flex-1 flex items-center justify-between' : 'p-8'}>
                   <div className={viewMode === 'list' ? 'flex-1' : 'mb-6'}>
                     <span className={`inline-block px-4 py-2 rounded-2xl text-sm font-bold mb-4 ${
@@ -1919,7 +1896,7 @@ Je viendrai bientôt commander pour profiter de ma petite réduction 😊
               <div className="space-y-3">
                 <button
                   onClick={handleInstallApp}
-                  className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white py-4 rounded-2xl font-black text-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3"
+                  className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white py-4 rounded-2xl font-black text-lg hover:from-rose-600 hover:to-pink-700 transition-all duration-300 flex items-center justify-center space-x-3"
                 >
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                     <Plus className="w-4 h-4" />
