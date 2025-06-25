@@ -1,92 +1,134 @@
 const CACHE_NAME = 'soya-v1.0.0';
+const urlsToCache = [
+  '/',
+  '/manifest.json',
+  '/favicon.svg',
+  '/icons/icon-192x192.svg',
+  '/icons/icon-512x512.svg',
+];
 
-// Installation du service worker
+// Installation du Service Worker
 self.addEventListener('install', (event) => {
   console.log('[SW] Installation...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Mise en cache des ressources');
+        return cache.addAll(urlsToCache);
+      })
+      .catch((err) => {
+        console.error('[SW] Erreur cache install:', err);
+      })
+  );
   self.skipWaiting();
 });
 
-// Activation et nettoyage des anciens caches
+// Activation du Service Worker
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activation...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Suppression de l\'ancien cache:', cacheName);
+            console.log('[SW] Suppression de l’ancien cache :', cacheName);
             return caches.delete(cacheName);
           }
         })
-      );
-    })
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Stratégie de cache simplifiée (network-first)
+// Interception des requêtes
 self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
-
-  // Ignorer les requêtes non-HTTP, Vite, WebSocket
-  if (
-    !url.startsWith('http') ||
-    url.includes('?t=') ||
-    url.includes('__vite') ||
-    url.includes('@vite') ||
-    url.includes('node_modules') ||
-    url.startsWith('ws')
-  ) {
-    return;
-  }
+  if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone).catch(() => {});
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
 
-          if (event.request.mode === 'navigate') {
+      return fetch(event.request)
+        .then((response) => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+
+          return response;
+        })
+        .catch(() => {
+          if (event.request.destination === 'document') {
             return caches.match('/');
           }
 
-          return new Response('Contenu non disponible hors ligne', {
+          return new Response('Contenu non disponible hors ligne.', {
             status: 503,
-            statusText: 'Service Unavailable'
+            statusText: 'Service Unavailable',
           });
         });
-      })
+    })
   );
 });
 
 // Gestion des notifications push
 self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {
+    title: 'Soya 🍔',
+    body: 'Nouvelle offre chez Soya !',
+  };
+
   const options = {
-    body: event.data ? event.data.text() : 'Nouvelle offre chez Soya !',
+    body: data.body,
     icon: '/favicon.svg',
     badge: '/favicon.svg',
+    vibrate: [100, 50, 100],
     tag: 'soya-notification',
-    requireInteraction: true
+    requireInteraction: true,
+    data: data.data || {},
+    actions: [
+      { action: 'open', title: 'Ouvrir l’app' },
+      { action: 'close', title: 'Fermer' }
+    ]
   };
 
   event.waitUntil(
-    self.registration.showNotification('Soya 🍔', options)
+    self.registration.showNotification(data.title || 'Soya 🍔', options)
   );
 });
 
-// Gestion des clics sur les notifications
+// Gestion du clic sur notifications
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow('/')
-  );
+
+  if (event.action === 'open') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+});
+
+// Gestion du background sync
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      new Promise((resolve) => {
+        console.log('[SW] Background sync déclenchée');
+        resolve();
+      })
+    );
+  }
+});
+
+// Message client → service worker
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

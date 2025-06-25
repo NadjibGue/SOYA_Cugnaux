@@ -94,7 +94,6 @@ function App() {
         price: 8.50,
         category: 'Burgers',
         popular: true,
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&h=300&fit=crop',
         detailedDescription: 'Notre burger emblématique qui fait la réputation de Soya ! Un pain brioche artisanal légèrement grillé, un steak haché de bœuf 100% français (150g) cuit à la perfection, salade iceberg croquante, tomate française bien mûre, oignon rouge, cornichons croquants. Le tout accompagné de notre sauce signature maison.',
         ingredients: ['Pain brioche artisanal', 'Steak haché bœuf 150g', 'Salade iceberg', 'Tomate fraîche', 'Oignon rouge', 'Cornichons', 'Sauce signature'],
         allergens: ['Gluten', 'Œuf', 'Lait'],
@@ -106,7 +105,6 @@ function App() {
         description: '🧀 Fromage cheddar fondant qui coule à chaque bouchée ! Un délice absolu',
         price: 9.00,
         category: 'Burgers',
-        image: 'https://images.unsplash.com/photo-1586816001966-79b736744398?w=500&h=300&fit=crop',
         detailedDescription: 'La version gourmande de notre classique ! Même base que notre burger signature avec en plus une généreuse tranche de cheddar affiné qui fond délicatement sur le steak chaud. Un mariage parfait entre le goût authentique du bœuf et la douceur crémeuse du fromage.',
         ingredients: ['Pain brioche artisanal', 'Steak haché bœuf 150g', 'Cheddar affiné', 'Salade iceberg', 'Tomate fraîche', 'Oignon rouge', 'Sauce signature'],
         allergens: ['Gluten', 'Œuf', 'Lait'],
@@ -118,7 +116,6 @@ function App() {
         description: '🥓 Bacon croustillant grillé à la perfection, un goût fumé irrésistible',
         price: 9.50,
         category: 'Burgers',
-        image: 'https://images.unsplash.com/photo-1553979459-d2229ba7433a?w=500&h=300&fit=crop',
         detailedDescription: 'Pour les amateurs de saveurs fumées ! Notre burger classique sublimé par des tranches de bacon grillées à la plancha jusqu\'à obtenir ce croustillant parfait. Le bacon apporte cette note fumée et salée qui se marie à merveille avec la jutosité du steak.',
         ingredients: ['Pain brioche artisanal', 'Steak haché bœuf 150g', 'Bacon grillé', 'Salade iceberg', 'Tomate fraîche', 'Oignon rouge', 'Sauce BBQ'],
         allergens: ['Gluten', 'Œuf'],
@@ -156,7 +153,6 @@ function App() {
         price: 7.00,
         category: 'Sandwichs',
         popular: true,
-        image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&h=300&fit=crop',
         detailedDescription: 'Une escalope de poulet fermier marinée 24h dans notre mélange d\'épices méditerranéennes, grillée à la plancha et servie dans un pain de campagne croustillant. Accompagnée de crudités fraîches et de notre sauce au yaourt grec.',
         ingredients: ['Pain de campagne', 'Escalope poulet fermier 120g', 'Salade', 'Tomate', 'Concombre', 'Sauce yaourt grec'],
         allergens: ['Gluten', 'Lait'],
@@ -451,11 +447,10 @@ function App() {
 
   const burgerEmojis = ['🍔', '🍕', '🌭', '🥪', '🧀', '🥓'];
 
-  // Animation effect for products
+  // Animation effect for products - remove automatic sound
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Animation des produits quand on change d'onglet
-      playSound('click');
+      // Animation des produits quand on change d'onglet (sans son automatique)
     }, 100);
     return () => clearTimeout(timer);
   }, [activeTab]);
@@ -466,34 +461,64 @@ function App() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // Sound effects
+  // Sound effects with better user gesture handling
   const playSound = (type: 'click' | 'success' | 'error') => {
     if (!isSoundEnabled) return;
     
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    switch (type) {
-      case 'click':
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        break;
-      case 'success':
-        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-        break;
-      case 'error':
-        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-        break;
+    // Only try to play sound after user interaction
+    const handleUserGesture = () => {
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().then(() => {
+            createSound(audioContext, type);
+          }).catch(() => {
+            // Silently fail
+          });
+        } else {
+          createSound(audioContext, type);
+        }
+      } catch (error) {
+        // Silently fail if Web Audio API is not supported
+      }
+    };
+
+    // Check if we have user gesture
+    if (document.visibilityState === 'visible') {
+      handleUserGesture();
     }
-    
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
+  };
+
+  const createSound = (audioContext: AudioContext, type: 'click' | 'success' | 'error') => {
+    try {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      switch (type) {
+        case 'click':
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          break;
+        case 'success':
+          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+          break;
+        case 'error':
+          oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+          break;
+      }
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error) {
+      // Silently fail
+    }
   };
 
   // Enhanced add to cart with animations
@@ -705,22 +730,33 @@ Je viendrai bientôt commander pour profiter de ma petite réduction 😊
     setSelectedProduct(null);
   };
 
-  // PWA Installation
+  // PWA Installation with better error handling
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      
+      // Only show install prompt if not already installed
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        setShowInstallPrompt(true);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+      showNotification('App installée avec succès ! 🎉', 'success');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Vérifier si l'app est déjà installée
+    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setShowInstallPrompt(false);
     }
 
-    // Gérer les raccourcis depuis le manifeste
+    // Handle shortcuts from manifest
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
     
@@ -732,18 +768,30 @@ Je viendrai bientôt commander pour profiter de ma petite réduction 😊
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallApp = async () => {
-    if (deferredPrompt) {
+    if (!deferredPrompt) {
+      showNotification('Installation non disponible', 'error');
+      return;
+    }
+
+    try {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
-        showNotification('Merci d\'avoir installé Soya ! 🎉', 'success');
+        showNotification('Installation en cours... 🚀', 'success');
+      } else {
+        showNotification('Installation annulée', 'info');
       }
       
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    } catch (error) {
+      showNotification('Erreur lors de l\'installation', 'error');
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     }
@@ -1457,7 +1505,6 @@ Je viendrai bientôt commander pour profiter de ma petite réduction 😊
                 onClick={() => setIsGameOpen(false)}
                 className="mt-6 text-gray-500 hover:text-gray-700 font-medium transition-colors duration-300"
               >
-                ✕ Fermer
               </button>
             </div>
           </div>

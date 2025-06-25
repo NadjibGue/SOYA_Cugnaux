@@ -1,21 +1,63 @@
 {
   "name": "Soya - Snack & Fast Food",
   "short_name": "Soya",
-  "description": "Le meilleur snack de la ville ! Burgers juteux, sandwichs généreux. Commande via WhatsApp et joue pour gagner des récompenses !",
+  "description": "Le meilleur snack de la ville ! Burgers juteux, sandwichs généreux. Commande via WhatsApp.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f43f5e",
   "theme_color": "#f43f5e",
   "orientation": "portrait-primary",
-  "categories": ["food", "business", "lifestyle"],
-  "lang": "fr",
   "scope": "/",
-  "prefer_related_applications": false,
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["food", "lifestyle", "business"],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -27,46 +69,30 @@
       "url": "/?action=order",
       "icons": [
         {
-          "src": "/favicon.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
     {
       "name": "Jouer au jeu",
       "short_name": "Jeu",
-      "description": "Jouer au jeu Soya et gagner des récompenses",
+      "description": "Jouer et gagner des récompenses",
       "url": "/?action=game",
       "icons": [
         {
-          "src": "/icons/icon-96x96.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
   ],
-  "screenshots": [
-    {
-      "src": "/icons/screenshot-mobile.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/screenshots/mobile-1.svg",
-      "sizes": "390x844",
-      "type": "image/svg+xml",
-      "form_factor": "narrow",
-      "label": "Menu principal de Soya"
-    },
-    {
-      "src": "/screenshots/desktop-1.svg",
-      "sizes": "1280x720",
-      "type": "image/svg+xml",
-      "form_factor": "wide",
-      "label": "Interface desktop de Soya"
-    }
-  ]
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
