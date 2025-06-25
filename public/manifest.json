@@ -1,0 +1,72 @@
+{
+  "name": "Soya - Snack & Fast Food",
+  "short_name": "Soya",
+  "description": "Le meilleur snack de la ville ! Burgers juteux, sandwichs généreux. Commande via WhatsApp et joue pour gagner des récompenses !",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f43f5e",
+  "theme_color": "#f43f5e",
+  "orientation": "portrait-primary",
+  "categories": ["food", "business", "lifestyle"],
+  "lang": "fr",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Commander maintenant",
+      "short_name": "Commander",
+      "description": "Passer une commande rapidement",
+      "url": "/?action=order",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Jouer au jeu",
+      "short_name": "Jeu",
+      "description": "Jouer au jeu Soya et gagner des récompenses",
+      "url": "/?action=game",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/mobile-1.svg",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Menu principal de Soya"
+    },
+    {
+      "src": "/screenshots/desktop-1.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Interface desktop de Soya"
+    }
+  ]
+}
